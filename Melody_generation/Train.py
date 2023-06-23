@@ -2,7 +2,7 @@
 from tensorflow import keras
 from keras.models import Model
 from keras.layers import Dense
-from main import generating_training_sequences , SEQUENCE_LENGHT
+from Melody_generation.main import generating_training_sequences , SEQUENCE_LENGHT
 
 OUTPUT_UNITS = 37
 NUM_UNITS = [256]
