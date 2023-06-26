@@ -9,8 +9,10 @@ what my understanding is ---->
 type of a recurrent neural network with some more variables in them 
 
 Gates used in a LSTM --->
-
-
-
+forget 
+state and 
+I/O gates 
 
 """
+import tensor2tensor as t2t
+t2t.__loader__
