@@ -1,0 +1,35 @@
+this section comprises of what are some of the main ideas i have in my head and to jot down some of the key plans and features on a high level so that I can follow wiith them in the near future or not do anything about them at all.
+
+some of them are listed below :
+
+    1.A sound generator for videos 
+        what I mean with this is that 
+            Inputs - Video + (opt) sound bytes + text description 
+            Output - video with a sound track or a general tune apt with the video 
+
+            why I think this is a good topic :
+                RECENT ADVANCEMETNS
+                due to some recent advancements in models like MusicLM by google and MusicGen (Meta) , we can now have a promp based audio track for about 4-5 minutes(ish)
+
+                Whats missing?i
+                a really good model which takes the inputs and converts them into a well stiched output and which can be used in many cases 
+
+                Usecases --
+                1.a video game generation with no raw audio can benifit 
+                2.recover /generate lost audio 
+                3.remakes and some funny stuff whcih is not that important 
+
+                downsides + error + overheads + negatives :
+                1.the models mentioned above are aldready pretty good (not the best ) and may not be very popular for our model to compete with them 
+                2.DATA - raw data is found quite easilty but we may (not sure) a curated and special dataset which we train out our model on 
+                3,TRAINING - just to throw this out there , least of our worrie in this rn 
+
+                MODEL:
+                lets get into this shall we (::)
+
+
+
+
+
+
+                 
