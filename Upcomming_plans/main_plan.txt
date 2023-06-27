@@ -1,0 +1,59 @@
+this section comprises of what are some of the main ideas i have in my head and to jot down some of the key plans and features on a high level so that I can follow wiith them in the near future or not do anything about them at all.
+
+some of them are listed below :
+
+    1.A sound generator for videos 
+        what I mean with this is that 
+            Inputs - Video + (opt) sound bytes + text description 
+            Output - video with a sound track or a general tune apt with the video 
+
+            why I think this is a good topic and elaboration :
+                RECENT ADVANCEMETNS
+                due to some recent advancements in models like MusicLM by google and MusicGen (Meta) , we can now have a promp based audio track for about 4-5 minutes(ish)
+                lets have a small talk on some interesting papers which can help us in this problme statement 
+                    1.Show, Attend and Tell: Neural Image Caption Generation with Visual Attention -- paper 
+                    this paper solves many but rises some more problmes , to understand this we must read the whole paper in detail and I will link the paper in the sources section of the plans folder 
+
+                    
+
+
+                Whats missing?
+                ACCURACY !!!!!!!!!!!!!!!! and also a lot of context training which can be solved by a LLM with some help but i dont really know what i am talking about 
+
+                also on a tengent , a really good model which takes the inputs and converts them into a well stiched output and which can be used in many cases 
+
+                Usecases --
+                1.a video game generation with no raw audio can benifit 
+                2.recover /generate lost audio 
+                3.remakes and some funny stuff whcih is not that important 
+
+                downsides + error + overheads + negatives :
+                1.the models mentioned above are aldready pretty good (not the best ) and may not be very popular for our model to compete with them 
+                2.DATA - raw data is found quite easilty but we may (not sure) a curated and special dataset which we train out our model on 
+                3,TRAINING - just to throw this out there , least of our worrie in this rn 
+
+                MODEL:
+                lets get into this shall we (::)
+
+                heavy inspiration from the show-attend-tell paper recently published about a year ago
+                this paper , as you can see , relies on many of the traditionally used tech but with a new cycle of attend used here which can be sort of taken from the newer paper of transformers (Attention is all you need!)
+
+                here in the transformer paper we have a concept of Attention but we will go a bit deeper later on in the plan
+
+                video (raw data) ------------> small image slection(will explain) ---------> IMAGE CAPTIONING (a whole lot )
+
+
+                small image subset selection - in theory - should take in a small clips or small sections (still images ) which capture the essence of the video presented 
+                Basically a attention system to take in the most info dense frames and then proceed with the process as a whole and then we will worry about that . 
+                
+
+
+
+
+
+
+
+
+
+
+                 
