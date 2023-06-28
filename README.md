@@ -14,6 +14,8 @@ Tools Used -------->
   anaconda
   
   git , vs code , pycharm , pyenv , muscore(4) , and packages like Tensorflow , Keras , json and numpy to name a few 
+  also i plan on using a lot of research papers as my source of study and code-inspirations , so i will try and link them indivisually to make it 
+  easier to find later on  
 
 I plan on doing many things with this dataset such as using different parametres and working on improving my overall melody or efficiency as one would day.
 I also plan on doing a lot more than sound generation in itself , such as sound analysis - providing a taste of music to the user or maybe even composer analysis 
