@@ -1,0 +1,3 @@
+"""
+Video Feature Extraction: The first step is to extract visual features from the video frames. This is usually done using pre-trained convolutional neural networks (CNNs) such as ResNet or Inception of the many out there , which are well-suited and long also but accurate enough for image analysis tasks. These CNNs can process each frame of the video and extract high-level visual features that capture important information.
+"""
