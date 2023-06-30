@@ -1,0 +1,2 @@
+I just learnt that in my melody generation project i used KRN file format which can be used for generation purposes but i am having an issue with fining Krn format datasets and so i am looking for diiferent sources to use it 
+eg - librosa 
