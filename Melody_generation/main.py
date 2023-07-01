@@ -195,6 +195,7 @@ def generating_training_sequences(sequence_lenght):
 
 
 
+######################just to call main and execute all at the same time#############
 def main():
     preprocessor(KERN_DATASET_PATH)
     songs = create_single_file_dataset(SAVE_DIR , SINGLE_FILE_DATASET, SEQUENCE_LENGHT)  
