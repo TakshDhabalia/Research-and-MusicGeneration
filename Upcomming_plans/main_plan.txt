@@ -45,7 +45,9 @@ some of them are listed below :
 
                 small image subset selection - in theory - should take in a small clips or small sections (still images ) which capture the essence of the video presented 
                 Basically a attention system to take in the most info dense frames and then proceed with the process as a whole and then we will worry about that . 
-                
+    update:
+    i just noticed a major flaw in my plan :
+        i am just dumping videos and expecting results from it , i need a small but good enough data-density to actually work with so that I can use my subsystem effectively . basically , choose a subset of videos.
 
 
 
