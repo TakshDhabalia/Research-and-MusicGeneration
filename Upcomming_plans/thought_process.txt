@@ -11,3 +11,5 @@ I plan to use the transformer approach and research furthur on the same so that 
 https://github.com/davidsvy/transformer-xl
 
 I would also like to review some of the literature that is currently available right now and is withing the recent times
+https://github.com/ashishpatel26/Best-Audio-Classification-Resources-with-Deep-learning#dl4m-details
+it was aldready done sadly
