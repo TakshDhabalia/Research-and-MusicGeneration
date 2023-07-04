@@ -13,3 +13,8 @@ https://github.com/davidsvy/transformer-xl
 I would also like to review some of the literature that is currently available right now and is withing the recent times
 https://github.com/ashishpatel26/Best-Audio-Classification-Resources-with-Deep-learning#dl4m-details
 it was aldready done sadly
+
+i needed to learn ateention transformers anyway so heres is small refence videio 
+https://youtu.be/4Bdc55j80l8
+
+this is the best video for transformers and its structure
