@@ -16,5 +16,5 @@ it was aldready done sadly
 
 i needed to learn ateention transformers anyway so heres is small refence videio 
 https://youtu.be/4Bdc55j80l8
-
+https://www.youtube.com/watch?v=tstbZXNCfLY&list=PLTKMiZHVd_2KJtIXOW0zFhFfBaJJilH51&index=163 : this vid is for multi headed attention in only its entirity 
 this is the best video for transformers and its structure
