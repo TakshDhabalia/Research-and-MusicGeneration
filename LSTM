@@ -1,0 +1,629 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "gpuType": "T4",
+      "mount_file_id": "147Kgagnnw8UzGNQN3cUkWehSxWWCplCQ",
+      "authorship_tag": "ABX9TyO6Rrx0NRNN4r38OBUy96sZ",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/TakshDhabalia/MusicGeneration/blob/main/LSTM\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "HHdnJY6rZCZZ"
+      },
+      "outputs": [],
+      "source": [
+        "import os\n",
+        "import json\n",
+        "import music21 as m21\n",
+        "from tensorflow import keras\n",
+        "import numpy as np"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "KERN_DATASET_PATH = \"/content/drive/MyDrive/LSTM_MG_data/erk\"\n",
+        "SAVE_DIR = r\"/content/drive/MyDrive/LSTM_MG_data/new_data\"\n",
+        "SINGLE_FILE_DATASET = \"file_dataset\"\n",
+        "SEQUENCE_LENGHT = 64 #when training our LSTM we need to pass them\n",
+        "MAPPING_PATH = r\"/content/drive/MyDrive/LSTM_MG_data/mappings/mapping.json\"\n",
+        "ACCEPTABLE_DURATIONS = [\n",
+        "    0.25,\n",
+        "    0.5,\n",
+        "    0.75,\n",
+        "    1.0,\n",
+        "    1.5,\n",
+        "    2.0,\n",
+        "    3.0,\n",
+        "    4,\n",
+        "]"
+      ],
+      "metadata": {
+        "id": "7F1wD2tgZueA"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def Load_Songs_In_Kern(dataset_path):\n",
+        "    #go through all the songs one by one and see them load in music21\n",
+        "\n",
+        "    songs = []\n",
+        "    for path ,subdir ,files in os.walk(dataset_path):#basic recursion for subdirectories and files\n",
+        "        for file in files:\n",
+        "            if file[-3:] == \"krn\":\n",
+        "                song = m21.converter.parse(os.path.join(path,file))\n",
+        "                songs.append(song)\n",
+        "    return songs\n",
+        "\n",
+        "def has_acceptable_durations(song , acceptable_duration) :\n",
+        "    #bool function i mean pretty clear\n",
+        "    pass\n",
+        "    for note in song.flat.notesAndRests:\n",
+        "        if note.duration.quarterLength not in acceptable_duration:\n",
+        "            return False\n",
+        "    return True\n",
+        "\n",
+        "def Transpose(song):\n",
+        "    #get the key from the song\n",
+        "    parts = song.getElementsByClass(m21.stream.Part)\n",
+        "    measures_part0 = parts[0].getElementsByClass(m21.stream.Measure)\n",
+        "    key = measures_part0[0][4]\n",
+        "    #get/estimate key using the music21\n",
+        "    #we also need to know even if we have the key or not\n",
+        "    if not isinstance(key ,m21.key.Key):\n",
+        "        key = song.analyse(\"key\")#analyse is basically majik for us commeners\n",
+        "\n",
+        "\n",
+        "    #get the interval for transposition basically Bmaj --> cmaj (interval estimation or info find out basically)\n",
+        "    if key.mode == \"major\":\n",
+        "        interval = m21.interval.Interval(key.tonic , m21.pitch.Pitch(\"C\"))#tonic is basically pitch object\n",
+        "    elif key.mode ==\"minor\":\n",
+        "        interval = m21.interval.Interval(key.tonic , m21.pitch.Pitch(\"A\"))\n",
+        "    #transpose song by calculated interval\n",
+        "    transposed_song = song.transpose(interval)\n",
+        "    return transposed_song\n",
+        "    #reson for transposition - we dont want all the data , we dont want other key , we only want to learn about c and A major and minor resp\n",
+        "    #we can use way less data\n",
+        "\n",
+        "def encode_song(song , time_step = 0.25):\n",
+        "    #p = 100 , d = 1.00 ---> [60 ,\"_\",\"_\",\"_\"] -- basic representation\n",
+        "    encode_song = []\n",
+        "    for event in song.flat.notesAndRests:\n",
+        "        #handle notes first\n",
+        "        if isinstance(event , m21.note.Note):\n",
+        "            symbol = event.pitch.midi #60 in our example\n",
+        "        elif isinstance(event , m21.note.Note):\n",
+        "            symbol = \"r\"\n",
+        "        #convert into a time series convention or the RHS equation\n",
+        "        steps = int(event.duration.quarterLength / time_step)\n",
+        "        for step in range(steps):\n",
+        "            if step == 0:\n",
+        "                encode_song.append(symbol)\n",
+        "            else:\n",
+        "                encode_song.append(\"_\")\n",
+        "    #cast or convert to string\n",
+        "    encode_song = \" \".join(map(str , encode_song))\n",
+        "    return encode_song\n",
+        "\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "wEbSb7aaaVh2"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def create_single_file_dataset(dataset_path ,file_dataset_path , sequence_lenght):\n",
+        "    new_song_delimiter = \"/ \"*sequence_lenght\n",
+        "    songs = \"\"\n",
+        "\n",
+        "\n",
+        "    #load encoded songs and add the limiters\n",
+        "    for path , _, files in os.walk(dataset_path):\n",
+        "        for file in files:\n",
+        "            file_path = os.path.join(path ,file)\n",
+        "            song = load(file_path)\n",
+        "            songs = songs + song +\" \" + new_song_delimiter\n",
+        "\n",
+        "    songs = songs [:-1]\n",
+        "    #add or join the all dataset\n",
+        "    with open(file_dataset_path , \"w\") as fp:\n",
+        "        fp.write(songs)\n",
+        "    return songs\n",
+        "\n",
+        "def create_mapping(songs,mapping_path):\n",
+        "    mappings = {}\n",
+        "\n",
+        "    #identify the vocabulary(disctionary)\n",
+        "    songs = songs.split()\n",
+        "    vocabulary = list(set(songs))\n",
+        "\n",
+        "    #create a mappings system\n",
+        "    for i ,symbol in enumerate(vocabulary):\n",
+        "        mappings[symbol] = i\n",
+        "\n",
+        "    #save the vocabulary to a json file format file\n",
+        "    with open(mapping_path ,\"w\") as fp :\n",
+        "        json.dump(mappings ,fp , indent=4)\n",
+        "\n",
+        "def convert_songs_to_int(songs):\n",
+        "    int_songs = []\n",
+        "    # load the mapping and the mappings which are in json specifiaclly and then\n",
+        "    with open(MAPPING_PATH , \"r\") as fp:\n",
+        "        mappings = json.load(fp)\n",
+        "    #cast songs string to a list\n",
+        "    songs = songs.split()\n",
+        "    #maps songs to int as the last step\n",
+        "    for symbol in songs:\n",
+        "        int_songs.append(mappings[symbol])\n",
+        "\n",
+        "    return int_songs"
+      ],
+      "metadata": {
+        "id": "TGsijW0faa-9"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def load(file_path):\n",
+        "    with open(file_path , \"r\") as fp:\n",
+        "        song = fp.read()\n",
+        "    return song\n"
+      ],
+      "metadata": {
+        "id": "wAB4SH6nabz3"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def preprocessor(dataset_path):\n",
+        "    pass\n",
+        "    #load the songs\n",
+        "    #filtre ou the songs that have non acceptable durations\n",
+        "    #main preprocessing is the amount of work done before we actually deploy this amount of data\n",
+        "    #amount of data we collected is from a a source called KERN dataset and the language of choice is\n",
+        "    #dutch\n",
+        "    print(\"loading songs\")\n",
+        "    songs = Load_Songs_In_Kern(dataset_path)\n",
+        "    print(f\"Loaded {len(songs)} songs .\")\n",
+        "\n",
+        "    for i ,song in enumerate(songs):\n",
+        "        #we need to filtre out acceptable range or not\n",
+        "        if not has_acceptable_durations(song , ACCEPTABLE_DURATIONS):\n",
+        "            continue#skips the song in the preprocess range\n",
+        "\n",
+        "        #transpose songs to Cmaj or C min\n",
+        "        song = Transpose(song)\n",
+        "\n",
+        "        #encode songs in music time series representation\n",
+        "        encoded_song = encode_song(song)\n",
+        "\n",
+        "        #load songs into a text file to a dataset\n",
+        "        save_path = os.path.join(SAVE_DIR ,str(i))\n",
+        "        with open(save_path, \"w\") as fp:\n",
+        "\n",
+        "            fp.write(encoded_song)\n"
+      ],
+      "metadata": {
+        "id": "zMCRc2nXaxwt"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def generating_training_sequences(sequence_lenght):\n",
+        "    #[11, 12,13,14 ...........] ---> [11,12] , [13] and the next step [12 ,13] ,[14]\n",
+        "\n",
+        "    #load songs and map them to int\n",
+        "    songs = load(SINGLE_FILE_DATASET)\n",
+        "    int_songs = convert_songs_to_int(songs)\n",
+        "\n",
+        "    #generate the training sequences\n",
+        "    #100 symbols dataset , 64 sequence lenght , 100-64 = 36 items x64\n",
+        "    inputs = []\n",
+        "    targets = []\n",
+        "    num_sequences = len(int_songs) - sequence_lenght\n",
+        "    for i in range(num_sequences):\n",
+        "        inputs.append(int_songs[i:i+sequence_lenght])\n",
+        "        targets.append(int_songs[i+sequence_lenght])\n",
+        "\n",
+        "\n",
+        "    #one-hot encode the sequences\n",
+        "    vocabulary_size = len(set(int_songs))\n",
+        "    #inputs = keras.utils.to_categorical(in)\n",
+        "    inputs = keras.utils.to_categorical(inputs , num_classes=vocabulary_size)\n",
+        "    targets = np.array(targets)\n",
+        "    return inputs, targets\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "by3bClz9an5l"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def main():\n",
+        "    preprocessor(KERN_DATASET_PATH)\n",
+        "    songs = create_single_file_dataset(SAVE_DIR , SINGLE_FILE_DATASET, SEQUENCE_LENGHT)\n",
+        "    create_mapping(songs ,MAPPING_PATH )\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "if __name__ == \"__main__\":\n",
+        "    main()\n"
+      ],
+      "metadata": {
+        "id": "gaETe8zsaok4",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 381
+        },
+        "outputId": "128f86b6-2ce5-4106-a959-54547a601d44"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "loading songs\n",
+            "Loaded 1319 songs .\n"
+          ]
+        },
+        {
+          "output_type": "error",
+          "ename": "KeyboardInterrupt",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m                         Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-8-b45e2de4a5b6>\u001b[0m in \u001b[0;36m<cell line: 10>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      9\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     10\u001b[0m \u001b[0;32mif\u001b[0m \u001b[0m__name__\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0;34m\"__main__\"\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 11\u001b[0;31m     \u001b[0mmain\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+            "\u001b[0;32m<ipython-input-8-b45e2de4a5b6>\u001b[0m in \u001b[0;36mmain\u001b[0;34m()\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mdef\u001b[0m \u001b[0mmain\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 2\u001b[0;31m     \u001b[0mpreprocessor\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mKERN_DATASET_PATH\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      3\u001b[0m     \u001b[0msongs\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mcreate_single_file_dataset\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mSAVE_DIR\u001b[0m \u001b[0;34m,\u001b[0m \u001b[0mSINGLE_FILE_DATASET\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mSEQUENCE_LENGHT\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m     \u001b[0mcreate_mapping\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0msongs\u001b[0m \u001b[0;34m,\u001b[0m\u001b[0mMAPPING_PATH\u001b[0m \u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m<ipython-input-6-e95367140295>\u001b[0m in \u001b[0;36mpreprocessor\u001b[0;34m(dataset_path)\u001b[0m\n\u001b[1;32m     23\u001b[0m         \u001b[0;31m#load songs into a text file to a dataset\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     24\u001b[0m         \u001b[0msave_path\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mos\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpath\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjoin\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mSAVE_DIR\u001b[0m \u001b[0;34m,\u001b[0m\u001b[0mstr\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mi\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 25\u001b[0;31m         \u001b[0;32mwith\u001b[0m \u001b[0mopen\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0msave_path\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m\"w\"\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mfp\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     26\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     27\u001b[0m             \u001b[0mfp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mwrite\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mencoded_song\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/lib/python3.10/codecs.py\u001b[0m in \u001b[0;36m__init__\u001b[0;34m(self, errors)\u001b[0m\n\u001b[1;32m    184\u001b[0m     \u001b[0mremembers\u001b[0m \u001b[0mthe\u001b[0m \u001b[0mstate\u001b[0m \u001b[0mof\u001b[0m \u001b[0mthe\u001b[0m \u001b[0mencoding\u001b[0m \u001b[0mprocess\u001b[0m \u001b[0mbetween\u001b[0m \u001b[0mcalls\u001b[0m \u001b[0mto\u001b[0m \u001b[0mencode\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    185\u001b[0m     \"\"\"\n\u001b[0;32m--> 186\u001b[0;31m     \u001b[0;32mdef\u001b[0m \u001b[0m__init__\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0merrors\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m'strict'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    187\u001b[0m         \"\"\"\n\u001b[1;32m    188\u001b[0m         \u001b[0mCreates\u001b[0m \u001b[0man\u001b[0m \u001b[0mIncrementalEncoder\u001b[0m \u001b[0minstance\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m: "
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "FOR TRAIN.PY\n"
+      ],
+      "metadata": {
+        "id": "GROYkSbmdY4a"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from tensorflow import keras\n",
+        "from keras.models import Model\n",
+        "from keras.layers import Dense"
+      ],
+      "metadata": {
+        "id": "LTWDxb8AdceI"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "OUTPUT_UNITS = 37\n",
+        "NUM_UNITS = [256]\n",
+        "LOSS = \"sparse_categorical_crossentropy\"\n",
+        "LEARNING_RATE = 0.001\n",
+        "EPOCHS = 200\n",
+        "BATCH_SIZE = 64\n",
+        "SAVE_MODEL_PATH = \"/content/drive/MyDrive/LSTM_MG_data/models/model200.h5\""
+      ],
+      "metadata": {
+        "id": "rfSyU3Z6de7V"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def build_model(output_units ,num_units ,loss ,learning_rate ):\n",
+        "\n",
+        "    #create the model architecture palin and simple\n",
+        "    input = keras.layers.Input(shape =(None , output_units))\n",
+        "    x = keras.layers.LSTM(num_units[0])(input)\n",
+        "    x = keras.layers.Dropout(0.2)(x)\n",
+        "\n",
+        "    output = keras.layers.Dense(output_units, activation = \"softmax\")(x)\n",
+        "\n",
+        "    model = keras.Model(input,output)\n",
+        "    #compile the model\n",
+        "    model.compile(loss = loss,\n",
+        "                  optimizer=keras.optimizers.Adam(learning_rate=learning_rate),\n",
+        "                  metrics=[\"accuracy\"])\n",
+        "\n",
+        "    model.summary()\n",
+        "\n",
+        "    return model"
+      ],
+      "metadata": {
+        "id": "k5suBSD-dg7e"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def train(output_units =OUTPUT_UNITS ,num_units = NUM_UNITS,loss =LOSS ,learning_rate =LEARNING_RATE):\n",
+        "\n",
+        "    #generate the training sequencses which we use from the other file\n",
+        "    inputs , targets = generating_training_sequences(SEQUENCE_LENGHT)\n",
+        "\n",
+        "    #Build the network\n",
+        "    model = build_model(output_units ,num_units ,loss ,learning_rate )\n",
+        "    #train the model\n",
+        "    model.fit(inputs, targets, epochs=EPOCHS, batch_size=BATCH_SIZE)\n",
+        "    #save the model\n",
+        "    model.save(SAVE_MODEL_PATH)\n",
+        "\n",
+        "if __name__ == \"__main__\":\n",
+        "    train()\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 329
+        },
+        "id": "pUHOC71Sdmci",
+        "outputId": "cd73c278-5c20-44e4-abe5-a5c35a437f3f"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "FileNotFoundError",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mFileNotFoundError\u001b[0m                         Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-12-924987b09ec6>\u001b[0m in \u001b[0;36m<cell line: 13>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     12\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     13\u001b[0m \u001b[0;32mif\u001b[0m \u001b[0m__name__\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0;34m\"__main__\"\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 14\u001b[0;31m     \u001b[0mtrain\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+            "\u001b[0;32m<ipython-input-12-924987b09ec6>\u001b[0m in \u001b[0;36mtrain\u001b[0;34m(output_units, num_units, loss, learning_rate)\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m     \u001b[0;31m#generate the training sequencses which we use from the other file\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 4\u001b[0;31m     \u001b[0minputs\u001b[0m \u001b[0;34m,\u001b[0m \u001b[0mtargets\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mgenerating_training_sequences\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mSEQUENCE_LENGHT\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      6\u001b[0m     \u001b[0;31m#Build the network\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m<ipython-input-7-2e22a7238ed4>\u001b[0m in \u001b[0;36mgenerating_training_sequences\u001b[0;34m(sequence_lenght)\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m     \u001b[0;31m#load songs and map them to int\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 5\u001b[0;31m     \u001b[0msongs\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mload\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mSINGLE_FILE_DATASET\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      6\u001b[0m     \u001b[0mint_songs\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mconvert_songs_to_int\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0msongs\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      7\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m<ipython-input-5-59f6fd8967fe>\u001b[0m in \u001b[0;36mload\u001b[0;34m(file_path)\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mdef\u001b[0m \u001b[0mload\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mfile_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 2\u001b[0;31m     \u001b[0;32mwith\u001b[0m \u001b[0mopen\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mfile_path\u001b[0m \u001b[0;34m,\u001b[0m \u001b[0;34m\"r\"\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mfp\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      3\u001b[0m         \u001b[0msong\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mfp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mread\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m     \u001b[0;32mreturn\u001b[0m \u001b[0msong\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mFileNotFoundError\u001b[0m: [Errno 2] No such file or directory: 'file_dataset'"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from tensorflow import keras\n",
+        "import json\n",
+        "import numpy as np\n",
+        "import music21 as m21\n"
+      ],
+      "metadata": {
+        "id": "Ll0MWEsueEZb"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "class MelodyGenerator():\n",
+        "    def __init__(self , model_path = \"/content/drive/MyDrive/LSTM_MG_data/models/model100.h5\"):\n",
+        "        self.model_path = model_path\n",
+        "        self.model = keras.models.load_model(model_path)\n",
+        "\n",
+        "        with open(MAPPING_PATH ,\"r\") as fp:\n",
+        "            self._mappings = json.load(fp)\n",
+        "\n",
+        "        self._start_symbols = [\"/\"] * SEQUENCE_LENGHT\n",
+        "\n",
+        "    def generate_melody(self ,seed ,num_steps , max_sequence_length, temperature ):\n",
+        "        #temperature - (0,infinity) --> way bwe sample output symbols\n",
+        "        #\"64___64_63\"--->seed\n",
+        "        seed = seed.split()\n",
+        "        melody = seed\n",
+        "        seed = self._start_symbols + seed\n",
+        "\n",
+        "        #map seed to integers from the look up table\n",
+        "        seed = [self._mappings[symbol] for symbol in seed]\n",
+        "\n",
+        "        for _ in range(num_steps):\n",
+        "\n",
+        "            #limit the seed to the specified sequence lenght (max) or the last releevnt steps\n",
+        "            seed = seed[-max_sequence_length:]\n",
+        "\n",
+        "            #one hot encode the seed for simplicity\n",
+        "            onehot_seed = keras.utils.to_categorical(seed , num_classes=len(self._mappings))\n",
+        "            onehot_seed = onehot_seed[np.newaxis , ...]\n",
+        "\n",
+        "            probabilites = self.model.predict(onehot_seed)[0]\n",
+        "\n",
+        "            output_int = self._sample_with_temperature(probabilites,temperature)\n",
+        "\n",
+        "            seed.append(output_int)\n",
+        "            output_symbol = [k for k, v in self._mappings.items() if v == output_int][0]\n",
+        "\n",
+        "            # check whether we're at the end of a melody\n",
+        "            if output_symbol == \"/\":\n",
+        "                break\n",
+        "\n",
+        "            # update melody\n",
+        "            melody.append(output_symbol)\n",
+        "        return melody\n",
+        "\n",
+        "\n",
+        "    def _sample_with_temperature(self,probabilites ,temperature ):\n",
+        "        predictions = np.log(probabilites) / temperature\n",
+        "        probabilites = np.exp(predictions) / np.sum(np.exp(predictions))\n",
+        "\n",
+        "        choices = range(len(probabilites)) # [0, 1, 2, 3]\n",
+        "        index = np.random.choice(choices, p=probabilites)\n",
+        "\n",
+        "        return index\n",
+        "    def save_melody(self, melody ,step_duration= 0.25,format = \"midi\" , filename=\"melseed1copy.midi\"):\n",
+        "        # create a music21 stream\n",
+        "        stream = m21.stream.Stream()\n",
+        "\n",
+        "        start_symbol = None\n",
+        "        step_counter = 1\n",
+        "\n",
+        "        # parse all the symbols in the melody and create note/rest objects\n",
+        "        for i, symbol in enumerate(melody):\n",
+        "\n",
+        "            # handle case in which we have a note/rest\n",
+        "            if symbol != \"_\" or i + 1 == len(melody):\n",
+        "\n",
+        "                # ensure we're dealing with note/rest beyond the first one\n",
+        "                if start_symbol is not None:\n",
+        "\n",
+        "                    quarter_length_duration = step_duration * step_counter # 0.25 * 4 = 1\n",
+        "\n",
+        "                    # handle rest\n",
+        "                    if start_symbol == \"r\":\n",
+        "                        m21_event = m21.note.Rest(quarterLength=quarter_length_duration)\n",
+        "\n",
+        "                    # handle note\n",
+        "                    else:\n",
+        "                        m21_event = m21.note.Note(int(start_symbol), quarterLength=quarter_length_duration)\n",
+        "\n",
+        "                    stream.append(m21_event)\n",
+        "\n",
+        "                    # reset the step counter\n",
+        "                    step_counter = 1\n",
+        "\n",
+        "                start_symbol = symbol\n",
+        "\n",
+        "            # handle case in which we have a prolongation sign \"_\"\n",
+        "            else:\n",
+        "                step_counter += 1\n",
+        "\n",
+        "        # write the m21 stream to a midi file\n",
+        "        stream.write(format, filename)\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "gQzo8538zj08"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "if __name__ == \"__main__\":\n",
+        "    mg = MelodyGenerator()\n",
+        "    seed = \"55 _ 60 _ 60 _ 60 _ 62 _ 64 _ 62 _ 60 _ _ _ 64 _ 64 _ 64 _ 65 _ 67 _ _ 65 64 _ 60 _ 72\"\n",
+        "    seed2 = \"55 _ 60 _ 60 _ 60 _ 62 _ 64 _ 62 _ 60 \"\n",
+        "\n",
+        "    melody = mg.generate_melody(seed2, 500, SEQUENCE_LENGHT, 0.4)\n",
+        "    print(melody)\n",
+        "    mg.save_melody(melody)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "H7eUOvSozrZY",
+        "outputId": "99be45a4-add2-40cd-cb6b-e017d353e35e"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "1/1 [==============================] - 0s 339ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 19ms/step\n",
+            "1/1 [==============================] - 0s 25ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "1/1 [==============================] - 0s 18ms/step\n",
+            "['55', '_', '60', '_', '60', '_', '60', '_', '62', '_', '64', '_', '62', '_', '60', '_', '_', '_', '64', '_', '64', '_', '64', '_', '65', '_', '67', '_', '_', '65', '64', '_', '60', '_', '72', '57', '52', '48', '57', '52', '80', '53', '52', '80', '57', '52', '48', '52', '48', '72', '57', '70', '57', '57', '57']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "I5kqWBReCR3C"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
