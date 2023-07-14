@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 import tensorflow_datasets as tfds
 import tensorflow as tf
-import torch 
+import torch  
 import tensorflow_text
 
 #making the self attention layer 

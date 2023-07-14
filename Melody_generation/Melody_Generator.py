@@ -1,6 +1,6 @@
 from tensorflow import keras
 import json
-from Melody_generation.main import SEQUENCE_LENGHT,MAPPING_PATH
+from main import SEQUENCE_LENGHT,MAPPING_PATH
 import numpy as np 
 import music21 as m21
 
